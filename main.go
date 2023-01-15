@@ -1,27 +1,17 @@
 package main
 
-import (
-	uigen "github.com/morgadow/find_not_optimtimized_c/ui"
-)
+import "github.com/morgadow/find_not_optimtimized_c/finder"
 
-
-
-var sourceFolder = "C:\\workspace\\go\\src\\github.com\\morgadow\\find_not_optimtimized_c\\tmp"
-var sourceFile = ""
+var sourceFolder = "C:/workspace/go/src/github.com/morgadow/go_find_not_optimized_c/test"
+var sourceFile = "C:/workspace/go/src/github.com/morgadow/go_find_not_optimized_c/test/test_file.c"
+var exportFile = "output.txt"
 
 func main() {
 
-	var worker = Worker{
-		sourceFolder: sourceFolder,
-		sourceFile:   sourceFile,
-		errs:         nil,
-		functions:    nil,
-		files:        nil,
-	}
-	worker.FindNonOptimizedFunctions(worker.sourceFolder, worker.sourceFile)
-
-	var tool = uigen.UIUiMainWindow{}
-	tool.SetupUI()
-
-
+	var worker = finder.Tool{}
+	//worker.SetSourceFolder(sourceFolder)
+	worker.SetSourceFile(sourceFile)
+	worker.SetExportFile(exportFile)
+	worker.SetAcceptedOptimizations([]string{"Os"})
+	worker.FindNonOptimizedFunctions()
 }
