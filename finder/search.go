@@ -47,7 +47,7 @@ func HasOptimize(line string, acceptedOptimizations []string) bool {
 		match = strings.Replace(match, "\"", "", 1)
 
 		// check optimization is in ignore list
-		if !elemInSlice(possibleOptimizations, match) {
+		if !elemInSlice(PossibleOptimizations, match) {
 			fmt.Printf("Invalid optimization found: %s\n", match)
 		}
 		if elemInSlice(acceptedOptimizations, match) {

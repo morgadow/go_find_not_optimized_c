@@ -116,7 +116,7 @@ func TestHasOptimize(t *testing.T) {
 
 	var idx = 1
 	testFunc := func(line string, exp bool) {
-		ret := HasOptimize(line, possibleOptimizations)
+		ret := HasOptimize(line, PossibleOptimizations)
 		if ret != exp {
 			t.Errorf("%v: Expected line '%s' to have answer: %v, got: %v", idx, line, exp, ret)
 		}

@@ -4,23 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path"
-	"path/filepath"
 )
-
-// gatherFiles recursive function to search for files with matching file extension
-func gatherFiles(folder, ext string, inclSubs bool) []string {
-	files := make([]string, 0, 256)
-	elems, _ := os.ReadDir(folder)
-	for _, elem := range elems {
-		if elem.IsDir() && inclSubs {
-			files = append(files, gatherFiles(path.Join(folder, elem.Name()), ext, inclSubs)...)
-		} else if ext != "" && filepath.Ext(elem.Name()) == ext {
-			files = append(files, path.Join(folder, elem.Name()))
-		}
-	}
-	return files
-}
 
 // elemInSlice helper function which checks if elem is in slice
 func elemInSlice(slice []string, key string) bool {
@@ -63,4 +47,12 @@ func loadFile(sourceFile string) ([]string, error) {
 		txtlines = append(txtlines, scanner.Text())
 	}
 	return txtlines, nil
+}
+
+// trunctates string if too long
+func trunc(text string, maxLen int) string {
+	if len(text) > maxLen {
+		return text[:maxLen-5] + " ..."
+	}
+	return text
 }
