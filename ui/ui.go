@@ -1,4 +1,4 @@
-package main
+package ui
 
 import (
 	"fmt"
@@ -21,59 +21,34 @@ const Height = 175
 
 var worker = finder.NewTool() // static tool struct
 
-// function for select file button
-func CBSelectFile(parent fyne.Window, start *widget.Button, lbl *widget.Entry) {
-	dialog.ShowFileOpen(func(uc fyne.URIReadCloser, err error) {
-		worker.SetSourceFile(uc.URI().Path())
-		CBSetSource(worker.GetSourceFile(), start, lbl)
-	}, parent)
+// bundling all data
+type UI struct {
+	worker   finder.Tool
+	win      fyne.Window
+	startBtn *widget.Button
+	running  bool
 }
 
-// function for select folder button
-func CBSelectFolder(parent fyne.Window, start *widget.Button, lbl *widget.Entry) {
-	dialog.ShowFolderOpen(func(lu fyne.ListableURI, err error) {
-		worker.SetSourceFolder(lu.Path())
-		CBSetSource(worker.GetSourceFolder(), start, lbl)
-	}, parent)
+func NewUI() *UI {
+	return &UI{}
 }
 
-// function for start button
-func CBStartSearching(parent fyne.Window) {
-	_, err := worker.FindNonOptimizedFunctions()
-	if err != nil {
-		dialog.ShowError(err, parent)
-	}
-}
+func (f *UI) Run() {
 
-// callback for setting source file after a file or folder was selected
-func CBSetSource(source string, start *widget.Button, lbl *widget.Entry) {
-	if source != "" {
-		start.Enable()
-		lbl.SetText(source)
-	}
-}
-
-func updateUI(status *widget.Label, prog *widget.ProgressBar) {
-	for {
-		status.SetText(worker.GetStatus())
-		prog.SetValue(worker.GetProgress())
-		time.Sleep(50 * time.Millisecond)
-	}
-}
-
-func main() {
+	f.running = false
+	f.worker = *finder.NewTool()
 
 	// new application
 	a := app.New()
-	win := a.NewWindow("Find not optimized C")
-	win.Resize(fyne.NewSize(Width, Height))
-	defer win.Close()
+	f.win = a.NewWindow("Find not optimized C")
+	f.win.Resize(fyne.NewSize(Width, Height))
+	defer f.win.Close()
 
 	res, err := fyne.LoadResourceFromPath("C:/workspace/go/src/github.com/morgadow/go_find_not_optimized_c/icon.png")
 	if err != nil {
 		fmt.Println(err)
 	}
-	win.SetIcon(res)
+	f.win.SetIcon(res)
 
 	// select optimiztions
 	desc := widget.NewLabel("Select accepted optimizations:")
@@ -89,17 +64,62 @@ func main() {
 	lbls := container.New(layout.NewFormLayout(), lbl, sourceLbl)
 
 	// button layout
-	startBtn := widget.NewButton("Start Searching", func() { CBStartSearching(win) })
-	startBtn.Disable()
-	fileBtn := widget.NewButton("Single File", func() { CBSelectFile(win, startBtn, sourceLbl) })
-	folderBtn := widget.NewButton("Select Folder", func() { CBSelectFolder(win, startBtn, sourceLbl) })
-	btns := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), fileBtn, layout.NewSpacer(), startBtn, layout.NewSpacer(), folderBtn, layout.NewSpacer())
+	f.startBtn = widget.NewButton("Start Searching", func() { f.CBStartSearching() })
+	f.startBtn.Disable()
+	fileBtn := widget.NewButton("Single File", func() { f.CBSelectFile(sourceLbl) })
+	folderBtn := widget.NewButton("Select Folder", func() { f.CBSelectFolder(sourceLbl) })
+	btns := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), fileBtn, layout.NewSpacer(), f.startBtn, layout.NewSpacer(), folderBtn, layout.NewSpacer())
 
 	// progressbar and status label
 	progress := widget.NewProgressBar()
 	state := widget.NewLabel("")
 
-	win.SetContent(container.New(layout.NewVBoxLayout(), desc, check, btns, lbls, layout.NewSpacer(), progress, canvas.NewLine(color.Black), state))
-	go updateUI(state, progress) // start update task
-	win.ShowAndRun()
+	f.win.SetContent(container.New(layout.NewVBoxLayout(), desc, check, canvas.NewLine(color.Gray16{0x7777}), btns, lbls, layout.NewSpacer(), canvas.NewLine(color.Black), progress, state))
+	go func() { // start update task
+		for {
+			state.SetText(worker.GetStatus())
+			progress.SetValue(worker.GetProgress())
+			time.Sleep(50 * time.Millisecond)
+		}
+	}()
+
+	f.win.ShowAndRun()
+}
+
+// function for select file button
+func (f *UI) CBSelectFile(lbl *widget.Entry) {
+	dialog.ShowFileOpen(func(uc fyne.URIReadCloser, err error) {
+		worker.SetSourceFile(uc.URI().Path())
+		f.CBSetSource(worker.GetSourceFile(), f.startBtn, lbl)
+	}, f.win)
+}
+
+// function for select folder button
+func (f *UI) CBSelectFolder(lbl *widget.Entry) {
+	dialog.ShowFolderOpen(func(lu fyne.ListableURI, err error) {
+		worker.SetSourceFolder(lu.Path())
+		f.CBSetSource(worker.GetSourceFolder(), f.startBtn, lbl)
+	}, f.win)
+}
+
+// function for start button
+func (f *UI) CBStartSearching() {
+	f.running = true
+	go func() {
+		f.startBtn.Disable()
+		_, err := worker.FindNonOptimizedFunctions()
+		if err != nil {
+			dialog.ShowError(err, f.win)
+		}
+		f.running = false
+		f.startBtn.Enable()
+	}()
+}
+
+// callback for setting source file after a file or folder was selected
+func (f *UI) CBSetSource(source string, start *widget.Button, lbl *widget.Entry) {
+	if source != "" {
+		start.Enable()
+		lbl.SetText(source)
+	}
 }
