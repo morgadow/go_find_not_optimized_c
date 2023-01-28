@@ -74,7 +74,7 @@ func (f *UI) Run() {
 	progress := widget.NewProgressBar()
 	state := widget.NewLabel("")
 
-	f.win.SetContent(container.New(layout.NewVBoxLayout(), desc, check, canvas.NewLine(color.Gray16{0x7777}), btns, lbls, layout.NewSpacer(), canvas.NewLine(color.Black), progress, state))
+	f.win.SetContent(container.New(layout.NewVBoxLayout(), desc, check, canvas.NewLine(color.Gray16{0x4FA4}), btns, lbls, layout.NewSpacer(), canvas.NewLine(color.Black), progress, state))
 	go func() { // start update task
 		for {
 			state.SetText(worker.GetStatus())
