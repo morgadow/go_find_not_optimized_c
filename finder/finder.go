@@ -119,7 +119,7 @@ func (w *Tool) FindNonOptimizedFunctions() ([]Function, error) {
 	if w.srcFile != "" {
 		w.files = append(w.files, w.srcFile)
 	}
-	w.progress = 5
+	w.progress = 0.05
 
 	// check at least one file was found
 	if len(w.files) == 0 {
@@ -129,7 +129,7 @@ func (w *Tool) FindNonOptimizedFunctions() ([]Function, error) {
 	}
 
 	// search all files
-	incr := 90 / len(w.files) // should end at 95 %
+	var incr float64 = 0.9 / float64(len(w.files)) // should end at 95 %
 	for idx, file := range w.files {
 		w.status = fmt.Sprintf("Analyzing file %v: %v", idx, trunc(file, MaxStatusLen-20))
 		lines, err := loadFile(file)
@@ -145,7 +145,7 @@ func (w *Tool) FindNonOptimizedFunctions() ([]Function, error) {
 		return nil, err
 	}
 	w.status = "Done ..."
-	w.progress = 100
+	w.progress = 1
 	return w.functions, nil
 }
 
